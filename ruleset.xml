@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="Custom Standard">
+    <rule ref="./vendor/yiisoft/yii2-coding-standards/Yii2/ruleset.xml"/>
+
+    <rule ref="Generic.PHP.DisallowShortOpenTag.EchoFound">
+        <severity>0</severity>
+    </rule>
+    <!--<exclude-pattern>*/_*</exclude-pattern>-->
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/views/*</exclude-pattern>
+</ruleset>
