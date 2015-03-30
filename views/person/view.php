@@ -33,7 +33,13 @@ $this->params['breadcrumbs'][] = $this->title;
             'first_name',
             'second_name',
             'phone_number',
-            'spec_id',
+            [
+                'attribute' => 'spec',
+                'value' => call_user_func(function($model) {
+
+                    return $model->spec->spec_name;
+                }, $model),
+            ],
         ],
     ]) ?>
 

@@ -46,9 +46,14 @@ class SpecController extends Controller
      * @param integer $id
      * @return mixed
      */
-    public function actionView($id)
+    public function actionView($id, $ajax = null)
     {
-        return $this->renderAjax('view', [
+        if ($ajax !== null) {
+            return $this->renderAjax('view', [
+                'model' => $this->findModel($id),
+            ]);
+        }
+        return $this->render('view', [
             'model' => $this->findModel($id),
         ]);
     }
@@ -77,13 +82,18 @@ class SpecController extends Controller
      * @param integer $id
      * @return mixed
      */
-    public function actionUpdate($id)
+    public function actionUpdate($id, $ajax = null)
     {
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         } else {
+            if ($ajax !== null) {
+                return $this->renderAjax('update', [
+                    'model' => $model,
+                ]);
+            }
             return $this->render('update', [
                 'model' => $model,
             ]);

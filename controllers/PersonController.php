@@ -5,9 +5,12 @@ namespace app\controllers;
 use Yii;
 use app\models\Person;
 use app\models\PersonSearch;
+use yii\helpers\Json;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\widgets\ActiveForm;
+use yii\web\Response;
 
 /**
  * PersonController implements the CRUD actions for Person model.
@@ -46,8 +49,13 @@ class PersonController extends Controller
      * @param integer $id
      * @return mixed
      */
-    public function actionView($id)
+    public function actionView($id, $ajax = null)
     {
+        if ($ajax !== null) {
+            return $this->renderAjax('view', [
+                'model' => $this->findModel($id),
+            ]);
+        }
         return $this->render('view', [
             'model' => $this->findModel($id),
         ]);
@@ -62,10 +70,13 @@ class PersonController extends Controller
     {
         $model = new Person();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return ActiveForm::validate($model);
+        } elseif ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         } else {
-            return $this->render('create', [
+            return $this->renderAjax('create', [
                 'model' => $model,
             ]);
         }
@@ -75,15 +86,26 @@ class PersonController extends Controller
      * Updates an existing Person model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param integer $id
+     * @param boolean $ajax
      * @return mixed
      */
-    public function actionUpdate($id)
+    public function actionUpdate($id, $ajax = null)
     {
         $model = $this->findModel($id);
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+
+        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+
+            return ActiveForm::validate($model);
+        } elseif ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         } else {
+            if ($ajax !== null) {
+                return $this->renderAjax('update', [
+                    'model' => $model,
+                ]);
+            }
             return $this->render('update', [
                 'model' => $model,
             ]);
@@ -101,6 +123,22 @@ class PersonController extends Controller
         $this->findModel($id)->delete();
 
         return $this->redirect(['index']);
+    }
+
+    public function actionList($name, $search = null, $id = null)
+    {
+        $data = array();
+        $text = '';
+        $map = array();
+        $out = ['more' => false];
+        $name = "app\models\\".$name;
+        return Person::dataAutocompleteList($name, $search, $id);
+    }
+
+    public function actionAjax()
+    {
+        echo Json::encode((new PersonSearch)->simple(Yii::$app->request->post()));
+        //var_dump(Yii::$app->request->post());
     }
 
     /**

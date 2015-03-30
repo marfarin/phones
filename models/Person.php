@@ -3,7 +3,7 @@
 namespace app\models;
 
 use Yii;
-
+use yii\helpers\Json;
 /**
  * This is the model class for table "persons".
  *
@@ -51,8 +51,33 @@ class Person extends \yii\db\ActiveRecord
             'second_name' => Yii::t('app', 'Second Name'),
             'phone_number' => Yii::t('app', 'Phone Number'),
             'spec_id' => Yii::t('app', 'Spec ID'),
+            'specs.spec_name' => Yii::t('app', 'Spec Name'),
         ];
     }
+
+    public static function dataAutocompleteList($name, $search = null, $id = null)
+    {
+        if (!is_null($search)) {
+            $data = $name::find()->select(['spec_name', 'id'])->where(['like', 'spec_name', $search])->asArray()->limit(20)->all();
+        }
+        if ($id!=null) {
+            $text = $name::find()->asArray()->where(['id'=>$id])->one()['spec_name'];
+        }
+        if (!is_null($search)) {
+            foreach ($data as $key => $value) {
+                $map[$key]['id'] = (string)$value['id'];
+                $map[$key]['text'] = (string)$value['spec_name'];
+            }
+            $out['results'] = array_values($map);
+        } elseif ($id > 0) {
+            $out['results'] = ['id' => $id, 'text' => $text];
+        } else {
+            $out['results'] = ['id' => 0, 'text' => 'No matching records found'];
+        }
+        return Json::encode($out);
+    }
+
+
 
     /**
      * @return \yii\db\ActiveQuery
